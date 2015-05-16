@@ -1,0 +1,13 @@
+{
+  "name": "html5-animation",
+  "homepage": "https://github.com/lamberta/html5-animation",
+  "_release": "f28ab5fb98",
+  "_resolution": {
+    "type": "branch",
+    "branch": "master",
+    "commit": "f28ab5fb9814364c0c354c568d41435c02cafa38"
+  },
+  "_source": "https://github.com/lamberta/html5-animation.git",
+  "_target": "*",
+  "_originalSource": "https://github.com/lamberta/html5-animation.git"
+}
