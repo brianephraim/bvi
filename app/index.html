@@ -17,6 +17,7 @@
         <script src="lib/angular-animate/angular-animate.js"></script>
         <script src="lib/html5-animation/examples/include/utils.js"></script>
         <script src="lib/html5-animation/examples/ch03/classes/ball.js"></script>
+        <script src="js/myutil.js"></script>
 
     </head>
     <body>
@@ -56,60 +57,9 @@
 
                 
 
+               
 
-                $.fn.actor = function(toGet) {
-                    var Actor = function(el){
-                        this.el = el;
-                        this.refresh();
-                    };
-                    Actor.prototype.refresh = function(){
-                        this.getSize();
-                        this.getCenter();
-                    };
-                    Actor.prototype.getSize = function(){
-                        this.size = {
-                            x: this.el.outerWidth(),
-                            y: this.el.outerHeight()
-                        };
-                        this.width = this.size.x;
-                        this.height = this.size.y;
-                    };
-                    Actor.prototype.getCenter = function(){
-                        this.center = {
-                            x: this.height/2,
-                            y: this.width/2
-                        };
-                        this.centerX = this.centerX;
-                        this.centerY = this.centerY;
-                    };
-                    var toReturn;
-                    var chain = this.each(function() {
-                        var el = $(this);
-                        var inst = el.data('actor');
-                        if(!inst) {
-                            el.data('actor', new Actor(el));
-                        } else {
-                            if(!toGet){
-                                console.log('vvv',inst)
-                                toReturn = inst;
-                            } else if(typeof inst[toGet] === 'function'){
-                                inst[toGet]();
-                                toReturn = inst;
-                            } else {
-                                toReturn = inst[toGet]
-                            }
-                            
-                        }
-                    });
-                    return toReturn ? toReturn : chain;
-                     
-                };
-
-                ggg = $('#parent2');
-
-                var stage = function(){
-
-                };
+                
 
                 if(true){
                     ;(function(){
@@ -117,23 +67,19 @@
                             ball = parent.find('.ball'),
                             angle = 0,
                             parentWidth = parent.width(),
-                            parentHeight = parent.height(),
-                            ballWidth = ball.width();
-                            ballHeight = ball.height();
+                            parentHeight = parent.height();
 
                         ball.actor();
 
                         $.Velocity.hook(ball, "translateX", ((parentWidth / 2) - ball.actor('center').x)+"px");
                         $.Velocity.hook(ball, "translateY", ((parentHeight / 2) - ball.actor('center').y)+"px");
                         
-                        
-                        (function drawFrame () {
-                            window.requestAnimationFrame(drawFrame, canvas);
-                          
-                            var ballY = ((parentHeight / 2) - (ballHeight / 2)) + Math.sin(angle) * 100;
+                        ball.loopCb(function(){
+                            var ballY = ((parentHeight / 2) - (ball.actor('height') / 2)) + Math.sin(angle) * 100;
                             $.Velocity.hook(ball, "translateY", ballY+"px");
-                            angle += 0.1;
-                        }());
+                            angle += 0.1; 
+                        });
+
                     })();
                 }
                 
