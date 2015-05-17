@@ -9,14 +9,25 @@ module.exports = function(grunt) {
         }
       }
     },
-    watch: {
-      files: ['<%= jshint.files %>'],
-      tasks: ['jshint']
+    connect: {
+      server: {
+        options: {
+          keepalive:true,
+          port: 8000,
+          base: {
+            path: 'app',
+            // options: {
+            //   index: 'somedoc.html',
+            //   maxAge: 300000
+            // }
+          }
+        }
+      }
     }
   });
 
   grunt.loadNpmTasks('grunt-contrib-jshint');
-  grunt.loadNpmTasks('grunt-contrib-watch');
+  grunt.loadNpmTasks('grunt-contrib-connect');
 
   grunt.registerTask('default', ['jshint']);
 

@@ -1,0 +1,200 @@
+<!doctype html>
+<html class="no-js" lang="">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="x-ua-compatible" content="ie=edge">
+        <title></title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <link rel="stylesheet" href="css/normalize.css">
+        <link rel="stylesheet" href="css/main.css">
+        <script src="lib/modernizr/modernizr.js"></script>
+        <script src="lib/jquery/dist/jquery.js"></script>
+        <script src="lib/velocity/velocity.js"></script>
+        <script src="lib/hammerjs/hammer.js"></script>
+        <script src="lib/angular/angular.js"></script>
+        <script src="lib/angular-animate/angular-animate.js"></script>
+        <script src="lib/html5-animation/examples/include/utils.js"></script>
+        <script src="lib/html5-animation/examples/ch03/classes/ball.js"></script>
+
+    </head>
+    <body>
+
+        <canvas id="canvas" width="400" height="400" style="background:green;"></canvas>
+
+        <div id="parent" style="position:absolute;left:0;opacity:.5;top:0;background:green;width:400px;height:400px;">
+            <div class="ball" style="width:80px;height:80px;background:yellow;">ball</div>
+        </div>
+        <div id="parent2" style="position:absolute;right:0;opacity:.5;top:0;background:green;width:400px;height:400px;">
+            <div class="ball" style="width:80px;height:80px;background:yellow;">ball</div>
+        </div>
+
+        <script>
+            window.onload = function () {
+                if(true){
+                    ;(function(){
+                        var canvas = document.getElementById('canvas'),
+                            context = canvas.getContext('2d'),
+                            ball = new Ball(),
+                            angle = 0;
+                        
+                        ball.x = canvas.width / 2;
+                        ball.y = canvas.height / 2;
+                        
+                        (function drawFrame () {
+                            window.requestAnimationFrame(drawFrame, canvas);
+                            context.clearRect(0, 0, canvas.width, canvas.height);
+
+                            ball.y = canvas.height / 2 + Math.sin(angle) * 100; 
+                            angle += 0.1;
+                            ball.draw(context);
+                        }());
+                    })();
+                }
+
+                if(false){
+                    ;(function(){
+                        var parent = $('#parent2'),
+                            ball = parent.find('.ball'),
+                            angle = 0,
+                            parentWidth = parent.width(),
+                            parentHeight = parent.height(),
+                            ballWidth = ball.width();
+                            ballHeight = ball.height();
+
+                        $.Velocity.hook(ball, "translateX", ((parentWidth / 2) - (ballWidth / 2))+"px");
+                        $.Velocity.hook(ball, "translateY", ((parentHeight / 2) - (ballHeight / 2))+"px");
+                        
+                        
+                        (function drawFrame () {
+                            window.requestAnimationFrame(drawFrame, canvas);
+                          
+                            var ballY = ((parentHeight / 2) - (ballHeight / 2)) + Math.sin(angle) * 100;
+                            $.Velocity.hook(ball, "translateY", ballY+"px");
+                            angle += 0.1;
+                        }());
+                    })();
+                }
+                /*
+                var jqueryDestroyName = '$destroy.' + topic;
+                    $el.on(jqueryDestroyName,function(){
+                        self.unpublish(topic);
+                    })
+                */
+                $.Velocity.prototype.asdf = function(cb){
+
+                    var msPerTickFor60Fps = 1000/60;
+                    var duration = 1000;
+                    var last = 0;
+                    var sum = 0;
+                    var lastFoundI = 0;
+                    //tick index of 59 is the last index.  tick index length is 60.
+                    var lastComplete = 0;
+                    ball.velocity({
+                        junk: [0,duration],
+                    }, {
+                        loop:true,
+                        duration:duration,
+                        progress: function(elements, complete, remaining, start, tweenValue) {
+
+                            var current = duration * complete;
+                            var prevTry = 0;
+                            var found = 0;
+                            if(current < last){
+                                lastFoundI = 0;
+                            }
+                            var i = lastFoundI;
+                            var offset = 0;
+                            var iterations = 0;
+                            while(i*msPerTickFor60Fps < duration && found === 0){
+                                var thisTry = i*msPerTickFor60Fps;
+                                if(thisTry > current && found === 0){
+                                    var thisDiff = thisTry - current;
+                                    var lastDiff = current - (i-1)*msPerTickFor60Fps;
+                                    offset = thisDiff < lastDiff ? thisDiff/msPerTickFor60Fps : -lastDiff/msPerTickFor60Fps;
+                                    found = i + offset;
+                                    lastFoundI = i;
+                                }
+                                prevTry = thisTry;
+                                i++;
+                                iterations++;
+                            }
+                            last = current;
+
+                            var ballY = ((parentHeight / 2) - (ballHeight / 2)) + Math.sin(angle) * 100;
+                            $.Velocity.hook(ball, "translateY", ballY+"px");
+                            // angle += (0.1);
+                            angle += (0.1 + (.1*offset));
+
+                        }
+                    });
+                }
+
+
+                var makeBallRoom = function($parent){
+                    var parent = $parent,
+                        ball = parent.find('.ball'),
+                        angle = 0,
+                        parentWidth = parent.width(),
+                        parentHeight = parent.height(),
+                        ballWidth = ball.width();
+                        ballHeight = ball.height();
+                    
+                    $.Velocity.hook(ball, "translateX", ((parentWidth / 2) - (ballWidth / 2))+"px");
+                    $.Velocity.hook(ball, "translateY", ((parentHeight / 2) - (ballHeight / 2))+"px");
+
+                    var msPerTickFor60Fps = 1000/60;
+
+                    var duration = 1000;
+                    var last = 0;
+                    var sum = 0;
+                    var lastFoundI = 0;
+                    //tick index of 59 is the last index.  tick index length is 60.
+                    var tickIndex = 0;
+                    var lastComplete = 0;
+                    ball.velocity({
+                        junk: [0,duration],
+                    }, {
+                        loop:true,
+                        duration:duration,
+                        progress: function(elements, complete, remaining, start, tweenValue) {
+                            vvv = ball
+                            var current = duration * complete;
+                            var prevTry = 0;
+                            var found = 0;
+                            if(current < last){
+                                lastFoundI = 0;
+                            }
+                            var i = lastFoundI;
+                            var offset = 0;
+                            var iterations = 0;
+                            while(i*msPerTickFor60Fps < duration && found === 0){
+                                var thisTry = i*msPerTickFor60Fps;
+                                if(thisTry > current && found === 0){
+                                    var thisDiff = thisTry - current;
+                                    var lastDiff = current - (i-1)*msPerTickFor60Fps;
+                                    offset = thisDiff < lastDiff ? thisDiff/msPerTickFor60Fps : -lastDiff/msPerTickFor60Fps;
+                                    found = i + offset;
+                                    lastFoundI = i;
+                                }
+                                prevTry = thisTry;
+                                i++;
+                                iterations++;
+                            }
+                            last = current;
+
+                            var ballY = ((parentHeight / 2) - (ballHeight / 2)) + Math.sin(angle) * 100;
+                            $.Velocity.hook(ball, "translateY", ballY+"px");
+                            // angle += (0.1);
+                            angle += (0.1 + (.1*offset));
+
+                        }
+                    });
+                }
+                makeBallRoom($('#parent'))
+                // makeBallRoom($('#parent2'))
+            };
+        </script>
+    </body>
+</html>

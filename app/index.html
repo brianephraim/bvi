@@ -1,0 +1,143 @@
+<!doctype html>
+<html class="no-js" lang="">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="x-ua-compatible" content="ie=edge">
+        <title></title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <link rel="stylesheet" href="css/normalize.css">
+        <link rel="stylesheet" href="css/main.css">
+        <script src="lib/modernizr/modernizr.js"></script>
+        <script src="lib/jquery/dist/jquery.js"></script>
+        <script src="lib/velocity/velocity.js"></script>
+        <script src="lib/hammerjs/hammer.js"></script>
+        <script src="lib/angular/angular.js"></script>
+        <script src="lib/angular-animate/angular-animate.js"></script>
+        <script src="lib/html5-animation/examples/include/utils.js"></script>
+        <script src="lib/html5-animation/examples/ch03/classes/ball.js"></script>
+
+    </head>
+    <body>
+
+        <canvas id="canvas" width="400" height="400" style="background:green;"></canvas>
+
+        <div id="parent" style="position:absolute;left:0;opacity:.5;top:0;background:green;width:400px;height:400px;">
+            <div class="ball" style="width:80px;height:80px;background:yellow;">ball</div>
+        </div>
+        <div id="parent2" style="position:absolute;right:0;opacity:.5;top:0;background:green;width:400px;height:400px;">
+            <div class="ball" style="width:80px;height:80px;background:yellow;">ball</div>
+        </div>
+
+        <script>
+            window.onload = function () {
+                if(true){
+                    ;(function(){
+                        var canvas = document.getElementById('canvas'),
+                            context = canvas.getContext('2d'),
+                            ball = new Ball(),
+                            angle = 0;
+                        
+                        ball.x = canvas.width / 2;
+                        ball.y = canvas.height / 2;
+                        
+                        (function drawFrame () {
+                            window.requestAnimationFrame(drawFrame, canvas);
+                            context.clearRect(0, 0, canvas.width, canvas.height);
+
+                            ball.y = canvas.height / 2 + Math.sin(angle) * 100; 
+                            angle += 0.1;
+                            ball.draw(context);
+                        }());
+                    })();
+                }
+
+
+                
+
+
+                $.fn.actor = function(toGet) {
+                    var Actor = function(el){
+                        this.el = el;
+                        this.refresh();
+                    };
+                    Actor.prototype.refresh = function(){
+                        this.getSize();
+                        this.getCenter();
+                    };
+                    Actor.prototype.getSize = function(){
+                        this.size = {
+                            x: this.el.outerWidth(),
+                            y: this.el.outerHeight()
+                        };
+                        this.width = this.size.x;
+                        this.height = this.size.y;
+                    };
+                    Actor.prototype.getCenter = function(){
+                        this.center = {
+                            x: this.height/2,
+                            y: this.width/2
+                        };
+                        this.centerX = this.centerX;
+                        this.centerY = this.centerY;
+                    };
+                    var toReturn;
+                    var chain = this.each(function() {
+                        var el = $(this);
+                        var inst = el.data('actor');
+                        if(!inst) {
+                            el.data('actor', new Actor(el));
+                        } else {
+                            if(!toGet){
+                                console.log('vvv',inst)
+                                toReturn = inst;
+                            } else if(typeof inst[toGet] === 'function'){
+                                inst[toGet]();
+                                toReturn = inst;
+                            } else {
+                                toReturn = inst[toGet]
+                            }
+                            
+                        }
+                    });
+                    return toReturn ? toReturn : chain;
+                     
+                };
+
+                ggg = $('#parent2');
+
+                var stage = function(){
+
+                };
+
+                if(true){
+                    ;(function(){
+                        var parent = $('#parent'),
+                            ball = parent.find('.ball'),
+                            angle = 0,
+                            parentWidth = parent.width(),
+                            parentHeight = parent.height(),
+                            ballWidth = ball.width();
+                            ballHeight = ball.height();
+
+                        ball.actor();
+
+                        $.Velocity.hook(ball, "translateX", ((parentWidth / 2) - ball.actor('center').x)+"px");
+                        $.Velocity.hook(ball, "translateY", ((parentHeight / 2) - ball.actor('center').y)+"px");
+                        
+                        
+                        (function drawFrame () {
+                            window.requestAnimationFrame(drawFrame, canvas);
+                          
+                            var ballY = ((parentHeight / 2) - (ballHeight / 2)) + Math.sin(angle) * 100;
+                            $.Velocity.hook(ball, "translateY", ballY+"px");
+                            angle += 0.1;
+                        }());
+                    })();
+                }
+                
+            };
+        </script>
+    </body>
+</html>
