@@ -87,6 +87,7 @@
         <aside>Move mouse on canvas element.</aside>
         <script src="lib/html5-animation/examples/ch03/classes/arrow.js"></script>
 
+        <div class="trackerFree" style="width:80px;height:20px;background:pink;position:relative;left:200px;text-align:right;">-----></div>
         <div id="parent_3_1" style="position:absolute;left:0;opacity:.5;background:green;width:400px;height:400px;">
             <div class="tracker" style="width:80px;height:20px;background:yellow;position:absolute;text-align:right;">-----></div>
         </div>
@@ -114,27 +115,44 @@
 
 
 
-                var makeMouseTrackingSpinner = function(selector){
-                    var angle = 0;
-                    var parent = $('#parent_3_1'),
-                        parentWidth = parent.width(),
-                        parentHeight = parent.height(),
-                        actor = parent.find(selector);
+                var makeMouseTrackingSpinner = function(actor,parent){
+                    var toListenTo;
+                    var propToParse;
+                    if(parent){
 
-                    actor.actor(parentWidth,parentHeight);
-                    actor.css({
-                        'left':actor.actor('centerWithin').x + 'px',
-                        'top':actor.actor('centerWithin').y + 'px'
-                    })
+                        var parentWidth = parent.width();
+                        var parentHeight = parent.height();
+                        var centerX = parentWidth/2;
+                        var centerY = parentHeight/2;
+                        toListenTo = parent;
+                        actor.actor(parentWidth,parentHeight);
+                        actor.css({
+                            'left':actor.actor('centerWithin').x + 'px',
+                            'top':actor.actor('centerWithin').y + 'px'
+                        })
+                        propToParse = 'offset';
+                    } else {
+                        toListenTo = $(window)
+                        actor.actor();
+                        var a = actor.actor();
+                        var actorOffset = actor.offset();
+                        console.log(actorOffset)
+                        var centerX = actorOffset.left + actor.actor('centerX');
+                        var centerY = actorOffset.top + actor.actor('centerY');
+                        propToParse = 'page';
+                    }
+                    
+
+                    
 
                     var delta = {
                         x:0,
                         y:0
                     }
-                    parent.on('mousemove',function(e){
+                    toListenTo.on('mousemove',function(e){
                         delta = {
-                            x:e.offsetX - parentWidth/2,
-                            y:e.offsetY - parentHeight/2
+                            x:e[propToParse + 'X'] - centerX,
+                            y:e[propToParse + 'Y'] - centerY
                         }
                     })
 
@@ -148,7 +166,9 @@
                     });
 
                 };
-                makeMouseTrackingSpinner('.tracker')
+                makeMouseTrackingSpinner($('.tracker'),$('#parent_3_1'));
+
+                makeMouseTrackingSpinner($('.trackerFree'));
 
             })
         </script>
