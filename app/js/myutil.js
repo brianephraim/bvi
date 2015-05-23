@@ -1,12 +1,16 @@
 
-$.fn.actor = function(toGet) {
-    var Actor = function(el){
+//versitileArg is toGetOrToCallOrParentOrParentWidth
+$.fn.actor = function(versitileArg,parentHeight) {
+    var args = Array.prototype.slice.apply(arguments, [1]);
+
+    var Actor = function(el,versitileArg,parentHeight){
         this.el = el;
-        this.refresh();
+        this.refresh(versitileArg,parentHeight);
     };
-    Actor.prototype.refresh = function(){
+    Actor.prototype.refresh = function(versitileArg,parentHeight){
         this.getSize();
         this.getCenter();
+        this.getCenterWithin(versitileArg,parentHeight);
     };
     Actor.prototype.getSize = function(){
         this.size = {
@@ -18,27 +22,47 @@ $.fn.actor = function(toGet) {
     };
     Actor.prototype.getCenter = function(){
         this.center = {
-            x: this.height/2,
-            y: this.width/2
+            x: this.width/2,
+            y: this.height/2
         };
-        this.centerX = this.centerX;
-        this.centerY = this.centerY;
+        this.centerX = this.center.x;
+        this.centerY = this.center.y;
+    };
+    Actor.prototype.getCenterWithin = function(versitileArg,parentHeight){
+        
+        var parentWidth = 0;
+        if(typeof versitileArg === 'object'){
+            parentWidth = versitileArg.outerWidth();
+            parentHeight = versitileArg.outerHeight();
+        } else if (typeof versitileArg === 'undefined'){
+            parentHeight = 0;
+        } else {
+            parentWidth = +versitileArg;
+            parentHeight = parentHeight ? +parentHeight : 0;
+        }
+        this.centerWithin = {
+            'x':(parentWidth/2) - this.centerX,
+            'y':(parentHeight/2) - this.centerY
+        };
+        this.centerWithinX = this.centerWithin.x;
+        this.centerWithinY = this.centerWithin.y;
+
+
     };
     var toReturn;
     var chain = this.each(function() {
         var el = $(this);
         var inst = el.data('actor');
         if(!inst) {
-            el.data('actor', new Actor(el));
+            el.data('actor', new Actor(el,versitileArg,parentHeight));
         } else {
-            if(!toGet){
-                console.log('vvv',inst)
+            if(!versitileArg){
                 toReturn = inst;
-            } else if(typeof inst[toGet] === 'function'){
-                inst[toGet]();
+            } else if(typeof inst[versitileArg] === 'function'){
+                inst[versitileArg].apply(this,args);
                 toReturn = inst;
             } else {
-                toReturn = inst[toGet]
+                toReturn = inst[versitileArg]
             }
             
         }
@@ -51,11 +75,18 @@ $.fn.actor = function(toGet) {
 
 ;(function(){
 
-    var drawFrame = function(context) {
+    var drawFrame = function(context,isInitial) {
         if(context.cbsCount > 0){
             context.running = true;
             window.requestAnimationFrame(function(){drawFrame(context)});
-            context.doCbs(context);
+            // the first frame would  get a headstart, otherwise,
+            // in below scenario, el1 is out of sync by one frame from el2 and el3
+            // el1.loopCb(anim)
+            // el2.loopCb(anim)
+            // el3.loopCb(anim)
+            if(!isInitial){
+                context.doCbs(context);
+            }
         } else {
             context.running = false;
         }
@@ -73,7 +104,6 @@ $.fn.actor = function(toGet) {
         }
     };
     Loop.prototype.killCb = function(id){
-        console.log('cccc',id)
         if(this.cbs[id]){
             delete this.cbs[id];
             this.cbsCount = this.cbsCount - 1;
@@ -90,7 +120,9 @@ $.fn.actor = function(toGet) {
                 self.killCb(id)
             });
         })(id);
-        drawFrame(this);
+        if(!this.running){
+            drawFrame(this,true);
+        }
 
         return id;
     };
@@ -107,4 +139,39 @@ $.fn.actor = function(toGet) {
         this.data('loopCbId', inst);
         return inst;
     };
+})();
+
+window.myUtils = (function(){
+    var MyUtils = function(){};
+    MyUtils.prototype.radians = function(degrees){
+        return degrees * Math.PI / 180;
+    };
+    MyUtils.prototype.degrees = function(radians){
+        return degrees = radians * 180 / Math.PI;
+    };
+    MyUtils.prototype.sinDeg = function(degrees){
+        return Math.sin(this.radians(degrees))
+    };
+    MyUtils.prototype.cosDeg = function(degrees){
+        return Math.cos(this.radians(degrees))
+    };
+    MyUtils.prototype.tanDeg = function(degrees){
+        return Math.tan(this.radians(degrees))
+    };
+    MyUtils.prototype.asinDeg = function(ratio){
+        return this.degrees(Math.asin(ratio));
+    };
+    MyUtils.prototype.acosDeg = function(ratio){
+        return this.degrees(Math.acos(ratio));
+    };
+    MyUtils.prototype.atanDeg = function(ratio){
+        return this.degrees(Math.atan(ratio));
+    };
+    MyUtils.prototype.atan2Deg = function(y,x){
+        return this.degrees(Math.atan2(y,x));
+    };
+    
+
+
+    return new MyUtils();
 })();

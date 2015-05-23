@@ -25,65 +25,135 @@
         <canvas id="canvas" width="400" height="400" style="background:green;"></canvas>
 
         <div id="parent" style="position:absolute;left:0;opacity:.5;top:0;background:green;width:400px;height:400px;">
-            <div class="ball" style="width:80px;height:80px;background:yellow;">ball</div>
+            <div class="ball" style="width:80px;height:80px;background:yellow;position:absolute;">ball</div>
+            <div class="ball2" style="width:80px;height:80px;background:orange;position:absolute;left:100px;">ball</div>
+            <div class="ball3" style="width:80px;height:80px;background:orange;position:absolute;left:200px;">ball</div>
         </div>
-        <div id="parent2" style="position:absolute;right:0;opacity:.5;top:0;background:green;width:400px;height:400px;">
-            <div class="ball" style="width:80px;height:80px;background:yellow;">ball</div>
-        </div>
+
 
         <script>
             window.onload = function () {
-                if(true){
-                    ;(function(){
-                        var canvas = document.getElementById('canvas'),
-                            context = canvas.getContext('2d'),
-                            ball = new Ball(),
-                            angle = 0;
-                        
-                        ball.x = canvas.width / 2;
-                        ball.y = canvas.height / 2;
-                        
-                        (function drawFrame () {
-                            window.requestAnimationFrame(drawFrame, canvas);
-                            context.clearRect(0, 0, canvas.width, canvas.height);
+                ;(function(){
+                    var canvas = document.getElementById('canvas'),
+                        context = canvas.getContext('2d'),
+                        ball = new Ball(),
+                        angle = 0;
+                    
+                    ball.x = canvas.width / 2;
+                    ball.y = canvas.height / 2;
+                    
+                    (function drawFrame () {
+                        window.requestAnimationFrame(drawFrame, canvas);
+                        context.clearRect(0, 0, canvas.width, canvas.height);
 
-                            ball.y = canvas.height / 2 + Math.sin(angle) * 100; 
-                            angle += 0.1;
-                            ball.draw(context);
-                        }());
-                    })();
-                }
-
+                        ball.y = canvas.height / 2 + Math.sin(angle) * 100; 
+                        angle += 0.1;
+                        ball.draw(context);
+                    }());
+                })();
 
                 
+                var makeBallMove = function(ballSelector,setsAngle){
+                    var angle = 0;
+                    var parent = $('#parent'),
+                        ball = parent.find(ballSelector),
+                        parentWidth = parent.width(),
+                        parentHeight = parent.height();
 
-               
+                    ball.actor();
 
-                
+                    $.Velocity.hook(ball, "translateX", ((parentWidth / 2) - ball.actor('center').x)+"px");
+                    $.Velocity.hook(ball, "translateY", ((parentHeight / 2) - ball.actor('center').y)+"px");
+                    
+                    ball.loopCb(function(){
+                        var ballY = ((parentHeight / 2) - (ball.actor('height') / 2)) + Math.sin(angle) * 100;
+                        $.Velocity.hook(ball, "translateY", ballY+"px");
+                        // if(setsAngle){ 
+                            angle += 0.1
+                        // }
+                    });
 
-                if(true){
-                    ;(function(){
-                        var parent = $('#parent'),
-                            ball = parent.find('.ball'),
-                            angle = 0,
-                            parentWidth = parent.width(),
-                            parentHeight = parent.height();
-
-                        ball.actor();
-
-                        $.Velocity.hook(ball, "translateX", ((parentWidth / 2) - ball.actor('center').x)+"px");
-                        $.Velocity.hook(ball, "translateY", ((parentHeight / 2) - ball.actor('center').y)+"px");
-                        
-                        ball.loopCb(function(){
-                            var ballY = ((parentHeight / 2) - (ball.actor('height') / 2)) + Math.sin(angle) * 100;
-                            $.Velocity.hook(ball, "translateY", ballY+"px");
-                            angle += 0.1; 
-                        });
-
-                    })();
-                }
-                
-            };
+                };
+                makeBallMove('.ball')
+                makeBallMove('.ball2')
+                makeBallMove('.ball3')
+            }                
         </script>
+
+        <hr />
+        <p>3.1</p>
+
+        <canvas id="canvas_3_1" width="400" height="400"></canvas>
+        <aside>Move mouse on canvas element.</aside>
+        <script src="lib/html5-animation/examples/ch03/classes/arrow.js"></script>
+
+        <div id="parent_3_1" style="position:absolute;left:0;opacity:.5;background:green;width:400px;height:400px;">
+            <div class="tracker" style="width:80px;height:20px;background:yellow;position:absolute;text-align:right;">-----></div>
+        </div>
+        <script>
+            $(function(){
+              var canvas = document.getElementById('canvas_3_1'),
+                  context = canvas.getContext('2d'),
+                  mouse = utils.captureMouse(canvas),
+                  arrow = new Arrow();
+                
+              arrow.x = canvas.width / 2;
+              arrow.y = canvas.height / 2;
+                
+              (function drawFrame () {
+                window.requestAnimationFrame(drawFrame, canvas);
+                context.clearRect(0, 0, canvas.width, canvas.height);
+                  
+                var dx = mouse.x - arrow.x,
+                    dy = mouse.y - arrow.y;
+                  
+                arrow.rotation = Math.atan2(dy, dx); //radians
+                arrow.draw(context);
+              }());
+
+
+
+
+                var makeMouseTrackingSpinner = function(selector){
+                    var angle = 0;
+                    var parent = $('#parent_3_1'),
+                        parentWidth = parent.width(),
+                        parentHeight = parent.height(),
+                        actor = parent.find(selector);
+
+                    actor.actor(parentWidth,parentHeight);
+                    actor.css({
+                        'left':actor.actor('centerWithin').x + 'px',
+                        'top':actor.actor('centerWithin').y + 'px'
+                    })
+
+                    var delta = {
+                        x:0,
+                        y:0
+                    }
+                    parent.on('mousemove',function(e){
+                        delta = {
+                            x:e.offsetX - parentWidth/2,
+                            y:e.offsetY - parentHeight/2
+                        }
+                    })
+
+                    var doRot = function(){
+                        $.Velocity.hook(actor, "rotateZ", myUtils.atan2Deg(delta.y,delta.x) + 'deg');
+                    };
+                    doRot();
+                    
+                    actor.loopCb(function(){
+                        doRot()
+                    });
+
+                };
+                makeMouseTrackingSpinner('.tracker')
+
+            })
+        </script>
+
+
+
     </body>
 </html>
