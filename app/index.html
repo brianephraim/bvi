@@ -52,9 +52,8 @@
                     }());
                 })();
 
-                
+
                 var makeBallMove = function(ballSelector,setsAngle){
-                    var angle = 0;
                     var parent = $('#parent'),
                         ball = parent.find(ballSelector),
                         parentWidth = parent.width(),
@@ -64,13 +63,10 @@
 
                     $.Velocity.hook(ball, "translateX", ((parentWidth / 2) - ball.actor('center').x)+"px");
                     $.Velocity.hook(ball, "translateY", ((parentHeight / 2) - ball.actor('center').y)+"px");
-                    
+                    var bob = myUtils.bob();
                     ball.loopCb(function(){
-                        var ballY = ((parentHeight / 2) - (ball.actor('height') / 2)) + Math.sin(angle) * 100;
+                        var ballY = ((parentHeight / 2) - (ball.actor('height') / 2)) + bob.tick() * 100;
                         $.Velocity.hook(ball, "translateY", ballY+"px");
-                        // if(setsAngle){ 
-                            angle += 0.1
-                        // }
                     });
 
                 };
@@ -88,7 +84,7 @@
         <script src="lib/html5-animation/examples/ch03/classes/arrow.js"></script>
 
         <div class="trackerFree" style="width:80px;height:20px;background:pink;position:relative;left:200px;text-align:right;">-----></div>
-        <div id="parent_3_1" style="position:absolute;left:0;opacity:.5;background:green;width:400px;height:400px;">
+        <div id="parent_3_1" style="position:relative;left:0;opacity:.5;background:green;width:400px;height:400px;">
             <div class="tracker" style="width:80px;height:20px;background:yellow;position:absolute;text-align:right;">-----></div>
         </div>
         <script>
@@ -173,6 +169,73 @@
             })
         </script>
 
+
+        <hr/>
+        <div class="bob">bob</div>
+        <script>
+            $(function(){
+                var bob = myUtils.bob();
+                var bobEl = $('.bob');
+                bobEl.loopCb(function(){
+                    var y =  bob.tick() * 100;
+                    $.Velocity.hook(bobEl, "translateY", y+"px");
+                });
+            });
+        </script>
+
+        <p>.</p><p>.</p><p>.</p><p>.</p><p>.</p><p>.</p><p>.</p>
+
+        <div class="circle" style="text-align:center;">circle</div>
+        <div class="ellipse" style="text-align:center;">ellipse</div>
+        <script>
+            $(function(){
+                var circle = myUtils.circle();
+
+                var circleEl = $('.circle');
+                var ellipseEl = $('.ellipse');
+
+                circleEl.loopCb(function(){
+                    var coords =  circle.tick();
+                    $.Velocity.hook(circleEl, "translateX", coords.x * 100+"px");
+                    $.Velocity.hook(circleEl, "translateY", coords.y * 100+"px");
+
+                    $.Velocity.hook(ellipseEl, "translateX", coords.x * 150+"px");
+                    $.Velocity.hook(ellipseEl, "translateY", coords.y * 100+"px");
+                });
+            });
+        </script>
+
+        <p>.</p><p>.</p><p>.</p><p>.</p><p>.</p><p>.</p><p>.</p>
+        <h2>distance</h2>
+        <div class="distanceParent" style="background:yellow;position:relative;width:200px;height:200px;">
+            <div class="distancePoint" style="position:absolute;left:40px;top:50px;width:3px;height:3px;background:black;"></div>
+        </div>
+        <p class="distanceDisplay">.</p>
+        <script>
+            $(function(){
+                var distanceParent = $('.distanceParent');
+                var distancePoint = $('.distancePoint');
+                var distanceDisplay = $('.distanceDisplay');
+                var distancePointOffset = distancePoint.offset();
+                var distance = 0;
+                distanceParent.on('mousemove',function(e){
+                    distance = myUtils.distance({x:e.pageX,y:e.pageY},distancePointOffset);
+                })
+                var lastDistance = null;
+                distanceDisplay.loopCb(function(){
+                    if(distance !== lastDistance){
+                        distanceDisplay.html(distance);
+                    }
+                    lastDistance = distance;
+                });
+            });
+        </script>
+
+
+        <p>.</p><p>.</p><p>.</p><p>.</p><p>.</p><p>.</p><p>.</p>
+        <p>.</p><p>.</p><p>.</p><p>.</p><p>.</p><p>.</p><p>.</p>
+        <p>.</p><p>.</p><p>.</p><p>.</p><p>.</p><p>.</p><p>.</p>
+        <p>.</p><p>.</p><p>.</p><p>.</p><p>.</p><p>.</p><p>.</p>
 
 
     </body>

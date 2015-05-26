@@ -170,6 +170,55 @@ window.myUtils = (function(){
     MyUtils.prototype.atan2Deg = function(y,x){
         return this.degrees(Math.atan2(y,x));
     };
+
+    MyUtils.prototype.hypot = function(a,b){
+        return Math.sqrt(
+            Math.pow(a,2) +
+            Math.pow(b,2)
+        );
+    };
+    MyUtils.prototype.getOffsetKeys = function(o){
+        return typeof o['top'] !== 'undefined' ? {x:'left',y:'top'} : {x:'x',y:'y'}
+    };
+
+    MyUtils.prototype.distance = function(o1,o2){
+        var o1Keys = this.getOffsetKeys(o1);
+        var o2Keys = this.getOffsetKeys(o2);
+        return this.hypot(o1[o1Keys.x] - o2[o2Keys.x],o1[o1Keys.y] - o2[o2Keys.y])
+    };
+
+
+    MyUtils.prototype.bob = function(useCos){
+        var dir = useCos ? 'cos' : 'sin';
+        var Bob = function(){
+            this.angle = 0;
+        };
+        Bob.prototype.tick = function(){
+            var toReturn = Math[dir](this.angle);
+            this.angle += 0.1;
+            return toReturn;
+        };
+        return new Bob();
+    };
+
+    MyUtils.prototype.circle = function(useCos){
+        var dir = useCos ? 'cos' : 'sin';
+        var Bob = function(){
+            this.angle = 0;
+        };
+        Bob.prototype.tick = function(){
+            //When coding animations, almost any time you are talking about x, 
+            //you should immediately think cosine, 
+            //and you should almost always connect y with sine.
+            var toReturn = {
+                x: Math['cos'](this.angle),
+                y: Math['sin'](this.angle)
+            };
+            this.angle += 0.1;
+            return toReturn;
+        };
+        return new Bob();
+    };
     
 
 
