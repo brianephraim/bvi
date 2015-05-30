@@ -114,6 +114,7 @@
                 var makeMouseTrackingSpinner = function(actor,parent){
                     var toListenTo;
                     var propToParse;
+                    var altCenter = false;
                     if(parent){
 
                         var parentWidth = parent.width();
@@ -127,39 +128,37 @@
                             'top':actor.actor('centerWithin').y + 'px'
                         })
                         propToParse = 'offset';
+                        altCenter = {
+                            x:centerX,
+                            y:centerY
+                        }
                     } else {
                         toListenTo = $(window)
                         actor.actor();
                         var a = actor.actor();
                         var actorOffset = actor.offset();
-                        console.log(actorOffset)
                         var centerX = actorOffset.left + actor.actor('centerX');
                         var centerY = actorOffset.top + actor.actor('centerY');
                         propToParse = 'page';
                     }
-                    
 
-                    
+                    var centerCoords = {
+                      x:centerX,
+                      y:centerY  
+                    };
 
-                    var delta = {
-                        x:0,
-                        y:0
-                    }
+                    var mouseCoords = {x:0,y:0};
                     toListenTo.on('mousemove',function(e){
-                        delta = {
-                            x:e[propToParse + 'X'] - centerX,
-                            y:e[propToParse + 'Y'] - centerY
-                        }
+                        mouseCoords.x = e[propToParse + 'X'];
+                        mouseCoords.y = e[propToParse + 'Y'];
                     })
 
-                    var doRot = function(){
-                        $.Velocity.hook(actor, "rotateZ", myUtils.atan2Deg(delta.y,delta.x) + 'deg');
-                    };
-                    doRot();
+                    // var doRot = function(){
+                    //     $.Velocity.hook(actor, "rotateZ", myUtils.getDegreesFromTwoPoints(mouseCoords,centerCoords) + 'deg');
+                    // };
+                    // doRot();
                     
-                    actor.loopCb(function(){
-                        doRot()
-                    });
+                    actor.actor('pointAt',mouseCoords,altCenter);
 
                 };
                 makeMouseTrackingSpinner($('.tracker'),$('#parent_3_1'));
@@ -233,6 +232,100 @@
 
 
         <p>.</p><p>.</p><p>.</p><p>.</p><p>.</p><p>.</p><p>.</p>
+
+
+
+        <h2>velocity</h2>
+        <div class="velocityParent" style="background:yellow;position:relative;width:200px;height:200px;overflow:hidden;">
+            <div class="velocityBall" style="position:absolute;width:20px;height:20px;background:black;"></div>
+        </div>
+        <script>
+            $(function(){
+                var velocityParent = $('.velocityParent');
+                var parentDims = {
+                    width:velocityParent.outerWidth(),
+                    height:velocityParent.outerWidth(),
+                }
+                var ball = $('.velocityBall');
+
+                var ballCoords = {
+                    x:0,
+                    y:0
+                };
+
+                ball.actor();
+                var myVeloctiy = myUtils.setVelocity({
+                    x:2,
+                    y:1
+                });
+                ball.loopCb(function(){
+                    if(ballCoords.x > parentDims.width || ballCoords.x > parentDims.height){
+                        ballCoords.x = -ball.actor('size').x;
+                        ballCoords.y = -ball.actor('size').y;
+                    } else {
+                        myVeloctiy.tick(ballCoords)
+                    }
+
+                    ball.actor('transform',{
+                        pos:{
+                            x: ballCoords.x,
+                            y: ballCoords.y
+                        }
+                    });
+
+                    
+                });
+            });
+        </script>
+
+        <p>.</p><p>.</p><p>.</p><p>.</p><p>.</p><p>.</p><p>.</p>
+
+
+
+        <h2>velocity</h2>
+        <div class="angularVelocityParent" style="background:yellow;position:relative;width:200px;height:200px;overflow:hidden;">
+            <div class="angularVelocityBall" style="position:absolute;width:20px;height:20px;background:black;"></div>
+        </div>
+        <script>
+            $(function(){
+                var velocityParent = $('.angularVelocityParent');
+                var parentDims = {
+                    width:velocityParent.outerWidth(),
+                    height:velocityParent.outerWidth(),
+                }
+                var ball = $('.angularVelocityBall');
+
+                var ballCoords = {
+                    x:parentDims.width/2,
+                    y:parentDims.height/2
+                };
+
+                ball.actor();
+                var myVeloctiy = myUtils.setVelocity({
+                    speed:4,
+                    degrees:-140
+                });
+                ball.loopCb(function(){
+                    if(ballCoords.x < -ball.actor('size').x || ballCoords.y < -ball.actor('size').y){
+                        ballCoords.x = parentDims.width;
+                        ballCoords.y = parentDims.height;
+                    } else {
+                        myVeloctiy.tick(ballCoords)
+                    }
+
+                    ball.actor('transform',{
+                        pos:{
+                            x: ballCoords.x,
+                            y: ballCoords.y
+                        }
+                    });
+
+                    
+                });
+            });
+        </script>
+
+
         <p>.</p><p>.</p><p>.</p><p>.</p><p>.</p><p>.</p><p>.</p>
         <p>.</p><p>.</p><p>.</p><p>.</p><p>.</p><p>.</p><p>.</p>
         <p>.</p><p>.</p><p>.</p><p>.</p><p>.</p><p>.</p><p>.</p>

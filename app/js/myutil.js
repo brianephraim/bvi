@@ -1,77 +1,4 @@
 
-//versitileArg is toGetOrToCallOrParentOrParentWidth
-$.fn.actor = function(versitileArg,parentHeight) {
-    var args = Array.prototype.slice.apply(arguments, [1]);
-
-    var Actor = function(el,versitileArg,parentHeight){
-        this.el = el;
-        this.refresh(versitileArg,parentHeight);
-    };
-    Actor.prototype.refresh = function(versitileArg,parentHeight){
-        this.getSize();
-        this.getCenter();
-        this.getCenterWithin(versitileArg,parentHeight);
-    };
-    Actor.prototype.getSize = function(){
-        this.size = {
-            x: this.el.outerWidth(),
-            y: this.el.outerHeight()
-        };
-        this.width = this.size.x;
-        this.height = this.size.y;
-    };
-    Actor.prototype.getCenter = function(){
-        this.center = {
-            x: this.width/2,
-            y: this.height/2
-        };
-        this.centerX = this.center.x;
-        this.centerY = this.center.y;
-    };
-    Actor.prototype.getCenterWithin = function(versitileArg,parentHeight){
-        
-        var parentWidth = 0;
-        if(typeof versitileArg === 'object'){
-            parentWidth = versitileArg.outerWidth();
-            parentHeight = versitileArg.outerHeight();
-        } else if (typeof versitileArg === 'undefined'){
-            parentHeight = 0;
-        } else {
-            parentWidth = +versitileArg;
-            parentHeight = parentHeight ? +parentHeight : 0;
-        }
-        this.centerWithin = {
-            'x':(parentWidth/2) - this.centerX,
-            'y':(parentHeight/2) - this.centerY
-        };
-        this.centerWithinX = this.centerWithin.x;
-        this.centerWithinY = this.centerWithin.y;
-
-
-    };
-    var toReturn;
-    var chain = this.each(function() {
-        var el = $(this);
-        var inst = el.data('actor');
-        if(!inst) {
-            el.data('actor', new Actor(el,versitileArg,parentHeight));
-        } else {
-            if(!versitileArg){
-                toReturn = inst;
-            } else if(typeof inst[versitileArg] === 'function'){
-                inst[versitileArg].apply(this,args);
-                toReturn = inst;
-            } else {
-                toReturn = inst[versitileArg]
-            }
-            
-        }
-    });
-    return toReturn ? toReturn : chain;
-};
-
-
-
 
 ;(function(){
 
@@ -171,6 +98,14 @@ window.myUtils = (function(){
         return this.degrees(Math.atan2(y,x));
     };
 
+    MyUtils.prototype.getDegreesFromTwoPoints = function(coords1,coords2){
+        var delta = {
+            x:coords1.x - coords2.x,
+            y:coords1.y - coords2.y
+        }
+        return this.atan2Deg(delta.y,delta.x)
+    };
+
     MyUtils.prototype.hypot = function(a,b){
         return Math.sqrt(
             Math.pow(a,2) +
@@ -201,6 +136,34 @@ window.myUtils = (function(){
         return new Bob();
     };
 
+    MyUtils.prototype.setVelocity = function(settings){
+        var util = this;
+        var VelocityManager = function(){
+            this.update(settings);
+        };
+        VelocityManager.prototype.update = function(settings){
+            if(settings.angle || settings.degrees || settings.radians){
+                settings.degrees = settings.angle ? settings.angle : settings.degrees;
+                settings.radians = typeof settings.degrees  !== 'undefined' ? util.radians(settings.degrees) : settings.radians;
+                settings.speed = typeof settings.speed !== 'undefined' ? settings.speed : 0;
+                settings.x = Math.cos(settings.radians) * settings.speed;
+                settings.y = Math.sin(settings.radians) * settings.speed;
+            }
+            this.velocities = settings;
+        };
+        VelocityManager.prototype.tick = function(coords){
+
+            for(var axisOrWhatev in coords){
+                var velocitiesValue = this.velocities[axisOrWhatev];
+                coords[axisOrWhatev] += typeof velocitiesValue !== 'undefined' ? velocitiesValue : 0; 
+            }
+            return coords;
+        };
+        return new VelocityManager();
+    };
+
+    
+
     MyUtils.prototype.circle = function(useCos){
         var dir = useCos ? 'cos' : 'sin';
         var Bob = function(){
@@ -219,8 +182,156 @@ window.myUtils = (function(){
         };
         return new Bob();
     };
+
+    // vector is magnitude and direction
+    // velocity is speed(magnitude) in a particular direction 
+
     
 
 
     return new MyUtils();
 })();
+
+
+
+//versitileArg is toGetOrToCallOrParentOrParentWidth
+$.fn.actor = function(versitileArg,parentHeight) {
+    var args = Array.prototype.slice.apply(arguments, [1]);
+
+    var Actor = function(el,versitileArg,parentHeight){
+        this.el = el;
+        this.refresh(versitileArg,parentHeight);
+        this.transformSettings = {};
+    };
+    Actor.prototype.refresh = function(versitileArg,parentHeight){
+        this.getSize();
+        this.getCenter();
+        this.getCenterWithin(versitileArg,parentHeight);
+    };
+    Actor.prototype.getSize = function(){
+        this.size = {
+            x: this.el.outerWidth(),
+            y: this.el.outerHeight()
+        };
+        this.width = this.size.x;
+        this.height = this.size.y;
+    };
+    Actor.prototype.getCenter = function(){
+        this.center = {
+            x: this.width/2,
+            y: this.height/2
+        };
+        this.centerX = this.center.x;
+        this.centerY = this.center.y;
+    };
+    Actor.prototype.getOffset = function(force){
+        if(!this.offset || force){
+            var offset = this.el.offset();
+            this.offset = !this.offset ? {}: this.offset;
+            this.offset.x = offset.left;
+            this.offset.y = offset.top
+        }
+        return this.offset;
+    };
+    Actor.prototype.getCenterWithin = function(versitileArg,parentHeight){
+        
+        var parentWidth = 0;
+        if(typeof versitileArg === 'object'){
+            parentWidth = versitileArg.outerWidth();
+            parentHeight = versitileArg.outerHeight();
+        } else if (typeof versitileArg === 'undefined'){
+            parentHeight = 0;
+        } else {
+            parentWidth = +versitileArg;
+            parentHeight = parentHeight ? +parentHeight : 0;
+        }
+        this.centerWithin = {
+            'x':(parentWidth/2) - this.centerX,
+            'y':(parentHeight/2) - this.centerY
+        };
+        this.centerWithinX = this.centerWithin.x;
+        this.centerWithinY = this.centerWithin.y;
+    };
+    Actor.prototype.transform = function(options){
+        /*
+            options = {
+                pos:{
+                    x:numberOfPx
+                    y:numberOfPx
+                    z:numberOfPx
+                },
+                rot:{
+                    x:numberOfDegrees
+                    y:numberOfDegrees
+                    z:numberOfDegrees
+                }
+            }
+        */
+        $.extend(true,this.transformSettings,options)
+        if(options.pos){
+            if(options.pos.x){
+                $.Velocity.hook(this.el, "translateX", options.pos.x+"px");
+            }
+            if(options.pos.y){
+                $.Velocity.hook(this.el, "translateY", options.pos.y+"px");
+            } 
+        }
+        if(options.rot){
+            
+            if(options.rot.x){
+                $.Velocity.hook(this.el, "rotateX", options.rot.x+"deg");
+            }
+            if(options.rot.y){
+                $.Velocity.hook(this.el, "rotateY", options.rot.y+"deg");
+            } 
+            if(options.rot.z){
+                // console.log(options.rot.z+" deg")
+                $.Velocity.hook(this.el, "rotateZ", options.rot.z+"deg");
+            } 
+        }      
+    };
+
+    Actor.prototype.pointAt = function(inputCoordsRef,centerCoords){
+        var self = this;
+
+        var offset = this.getOffset();
+        
+
+        this.el.loopCb(function(){
+            centerCoords = centerCoords ? centerCoords : {
+                x:offset.x + self.centerX,
+                y:offset.y + self.centerY,
+            };
+            self.transform({
+                rot: {z:myUtils.getDegreesFromTwoPoints(inputCoordsRef,centerCoords)}
+            })
+        });
+    
+    };
+
+
+    var toReturn;
+    var chain = this.each(function() {
+        var el = $(this);
+        var inst = el.data('actor');
+        if(!inst) {
+            el.data('actor', new Actor(el,versitileArg,parentHeight));
+        } else {
+            if(!versitileArg){
+                toReturn = inst;
+            } else if(typeof inst[versitileArg] === 'function'){
+                inst[versitileArg].apply(inst,args);
+                toReturn = inst;
+            } else {
+                toReturn = inst[versitileArg]
+            }
+            
+        }
+    });
+    return toReturn ? toReturn : chain;
+};
+
+
+
+
+
