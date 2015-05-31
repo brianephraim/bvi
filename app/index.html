@@ -159,6 +159,7 @@
                     // doRot();
                     
                     actor.actor('pointAt',mouseCoords,altCenter);
+                    // actor.actor('moveToward',mouseCoords,altCenter);
 
                 };
                 makeMouseTrackingSpinner($('.tracker'),$('#parent_3_1'));
@@ -282,7 +283,7 @@
 
 
 
-        <h2>velocity</h2>
+        <h2>angular velocity</h2>
         <div class="angularVelocityParent" style="background:yellow;position:relative;width:200px;height:200px;overflow:hidden;">
             <div class="angularVelocityBall" style="position:absolute;width:20px;height:20px;background:black;"></div>
         </div>
@@ -322,6 +323,58 @@
 
                     
                 });
+            });
+        </script>
+
+
+        <p>.</p><p>.</p><p>.</p><p>.</p><p>.</p><p>.</p><p>.</p>
+
+
+
+        <h2>velocity move towards</h2>
+        <div class="moveTowardsParent" style="background:yellow;position:relative;width:200px;height:200px;overflow:hidden;">
+            <div class="moveTowardsBall" style="position:absolute;width:20px;height:20px;background:black;"></div>
+        </div>
+        <script>
+            $(function(){
+                var velocityParent = $('.moveTowardsParent');
+                var parentDims = {
+                    width:velocityParent.outerWidth(),
+                    height:velocityParent.outerWidth(),
+                }
+                var ball = $('.moveTowardsBall');
+
+                var ballCoords = {
+                    x:parentDims.width/2,
+                    y:parentDims.height/2
+                };
+
+                ball.actor();
+                var myVeloctiy = myUtils.setVelocity({
+                    speed:4,
+                    degrees:-140
+                });
+
+
+                var mouseCoords = {x:0,y:0};
+                // var propToParse = 'page';
+                // $(window).on('mousemove',function(e){
+                //     mouseCoords.x = e[propToParse + 'X'];
+                //     mouseCoords.y = e[propToParse + 'Y'];
+                // })
+                var propToParse = 'offset';
+                velocityParent.on('mousemove',function(e){
+                    mouseCoords.x = e.originalEvent[propToParse + 'X'];
+                    mouseCoords.y = e.originalEvent[propToParse + 'Y'];
+                })
+
+                ball.actor('moveToward',mouseCoords,{x:100,y:0});
+
+
+              
+
+                    
+                // });
             });
         </script>
 

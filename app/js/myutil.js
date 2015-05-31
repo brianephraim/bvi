@@ -17,6 +17,8 @@
         } else {
             context.running = false;
         }
+        this.temp = {};
+
     };
 
     var Loop = function(){
@@ -24,6 +26,7 @@
         this.cbsCount = 0;
         this.id = 0;
         this.running = false;
+        this.temp = {};
     };
     Loop.prototype.doCbs = function(){
         for(var key in this.cbs){
@@ -56,7 +59,12 @@
 
     var loop = new Loop();
 
-    $.fn.loopCb = function(cb) {
+    $.fn.loopCb = function(cb,keyToStoreTemp,tempVal) {
+        if(typeof cb !== 'function'){
+            if(keyToStoreTemp){
+                loop.temp[keyToStoreTemp] = tempVal;
+            }
+        }
         var toReturn;
         var inst = this.data('loopCbId');
         if(inst) {
@@ -70,6 +78,25 @@
 
 window.myUtils = (function(){
     var MyUtils = function(){};
+    MyUtils.prototype.propertyAt = function index(objx, at, value) {
+        if (typeof at == 'string') {
+            at = at.replace(/\[(\w+)\]/g, '.$1');
+
+            return index(objx, at.split('.'), value);
+
+        } else if (at.length == 1 && value !== undefined) {
+            return objx[at[0]] = value;
+        } else if (at.length == 0) {
+            return objx;
+        } else {
+            if (typeof objx[at[0]] === 'undefined') {
+                if(at.length > 1){
+                    objx[at[0]] = {};
+                }
+            }
+            return index(objx[at[0]], at.slice(1), value);
+        }
+    };
     MyUtils.prototype.radians = function(degrees){
         return degrees * Math.PI / 180;
     };
@@ -151,11 +178,22 @@ window.myUtils = (function(){
             }
             this.velocities = settings;
         };
-        VelocityManager.prototype.tick = function(coords){
-
+        VelocityManager.prototype.tick = function(coords,inputCoordsRef){
             for(var axisOrWhatev in coords){
                 var velocitiesValue = this.velocities[axisOrWhatev];
-                coords[axisOrWhatev] += typeof velocitiesValue !== 'undefined' ? velocitiesValue : 0; 
+                var upcomingCoordsValue = coords[axisOrWhatev] + (typeof velocitiesValue !== 'undefined' ? velocitiesValue : 0);
+                if(inputCoordsRef ){
+                    var delta = coords[axisOrWhatev] - inputCoordsRef[axisOrWhatev];
+                    var futureDelta = upcomingCoordsValue - inputCoordsRef[axisOrWhatev];
+                    if(delta === 0){
+                        upcomingCoordsValue = coords[axisOrWhatev];
+                    } else if(delta < 0){
+                        upcomingCoordsValue = futureDelta >= 0 ? coords[axisOrWhatev] : upcomingCoordsValue;
+                    } else{
+                        upcomingCoordsValue = futureDelta <= 0 ? coords[axisOrWhatev] : upcomingCoordsValue;
+                    }
+                }
+                coords[axisOrWhatev] = upcomingCoordsValue;
             }
             return coords;
         };
@@ -285,7 +323,6 @@ $.fn.actor = function(versitileArg,parentHeight) {
                 $.Velocity.hook(this.el, "rotateY", options.rot.y+"deg");
             } 
             if(options.rot.z){
-                // console.log(options.rot.z+" deg")
                 $.Velocity.hook(this.el, "rotateZ", options.rot.z+"deg");
             } 
         }      
@@ -302,10 +339,65 @@ $.fn.actor = function(versitileArg,parentHeight) {
                 x:offset.x + self.centerX,
                 y:offset.y + self.centerY,
             };
+            var deg = myUtils.getDegreesFromTwoPoints(inputCoordsRef,centerCoords);
             self.transform({
-                rot: {z:myUtils.getDegreesFromTwoPoints(inputCoordsRef,centerCoords)}
+                rot: {z:deg}
             })
         });
+    
+    };
+
+    Actor.prototype.getTheoreticalTransformSetting = function(path){
+        var toReturn = 0;
+        var val = myUtils.propertyAt(this.transformSettings, path);
+        var type = typeof val;
+        if(type){
+            toReturn = val;
+        }
+        return toReturn;
+    };
+
+    Actor.prototype.moveToward = function(inputCoordsRef,centerCoords){
+        var self = this;
+
+        var offset = this.getOffset();
+        
+        var velocitySettings = {
+            speed:4,
+            degrees:-140
+        };
+
+        var myVeloctiy = myUtils.setVelocity({
+            speed:1,
+            degrees:10
+        });
+        this.el.loopCb(function(){
+            centerCoords = centerCoords ? centerCoords : {
+                x:offset.x + self.centerX + self.getTheoreticalTransformSetting('pos.x'),
+                y:offset.y + self.centerY + self.getTheoreticalTransformSetting('pos.y'),
+            };
+
+
+
+            velocitySettings.degrees = myUtils.getDegreesFromTwoPoints(inputCoordsRef,centerCoords);
+
+            myVeloctiy.update(velocitySettings);
+            myVeloctiy.tick(centerCoords,inputCoordsRef);
+
+
+            self.transform({
+                pos:{
+                    x: centerCoords.x,
+                    y: centerCoords.y
+                }
+            })
+        });
+
+
+          
+
+
+
     
     };
 
