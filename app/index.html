@@ -342,6 +342,7 @@
                     width:velocityParent.outerWidth(),
                     height:velocityParent.outerWidth(),
                 }
+                var parentOffset = velocityParent.offset() 
                 var ball = $('.moveTowardsBall');
 
                 var ballCoords = {
@@ -362,10 +363,10 @@
                 //     mouseCoords.x = e[propToParse + 'X'];
                 //     mouseCoords.y = e[propToParse + 'Y'];
                 // })
-                var propToParse = 'offset';
+                var propToParse = 'page';
                 velocityParent.on('mousemove',function(e){
-                    mouseCoords.x = e.originalEvent[propToParse + 'X'];
-                    mouseCoords.y = e.originalEvent[propToParse + 'Y'];
+                    mouseCoords.x = e[propToParse + 'X'] - parentOffset.left;
+                    mouseCoords.y = e[propToParse + 'Y'] - parentOffset.top;
                 })
 
                 ball.actor('moveToward',mouseCoords,{x:100,y:0});

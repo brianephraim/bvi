@@ -163,7 +163,21 @@ window.myUtils = (function(){
         return new Bob();
     };
 
+    var limitLogCount = 0;
+    var lastLimitLog = '';
+    var limitLog = function(){
+        var j = Array.prototype.join.call(arguments, ', ');
+        if(limitLogCount % 500 === 0){
+            console.log(j)
+        }
+            
+        
+        limitLogCount++;
+    };    
+
     MyUtils.prototype.setVelocity = function(settings){
+        
+        
         var util = this;
         var VelocityManager = function(){
             this.update(settings);
@@ -182,7 +196,10 @@ window.myUtils = (function(){
             for(var axisOrWhatev in coords){
                 var velocitiesValue = this.velocities[axisOrWhatev];
                 var upcomingCoordsValue = coords[axisOrWhatev] + (typeof velocitiesValue !== 'undefined' ? velocitiesValue : 0);
+                
                 if(inputCoordsRef ){
+                    // console.log(inputCoordsRef)
+                    // limitLog(inputCoordsRef.x)
                     var delta = coords[axisOrWhatev] - inputCoordsRef[axisOrWhatev];
                     var futureDelta = upcomingCoordsValue - inputCoordsRef[axisOrWhatev];
                     if(delta === 0){
@@ -199,6 +216,9 @@ window.myUtils = (function(){
         };
         return new VelocityManager();
     };
+
+    
+    
 
     
 
