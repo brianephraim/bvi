@@ -44,6 +44,7 @@
         var id = this.id++;
         $el.data('loopId',this.id++);
         this.cbs[id] = cb;
+        console.log(this.cbs)
         this.cbsCount = this.cbsCount + 1;
         ;(function(id){
             $el.on('$destroy',function(){
@@ -67,7 +68,7 @@
         }
         var toReturn;
         var inst = this.data('loopCbId');
-        if(inst) {
+        if(!cb && inst) {
             loop.killCb(inst);
         }
         inst = loop.registerCb(this,cb);
@@ -198,8 +199,6 @@ window.myUtils = (function(){
                 var upcomingCoordsValue = coords[axisOrWhatev] + (typeof velocitiesValue !== 'undefined' ? velocitiesValue : 0);
                 
                 if(inputCoordsRef ){
-                    // console.log(inputCoordsRef)
-                    // limitLog(inputCoordsRef.x)
                     var delta = coords[axisOrWhatev] - inputCoordsRef[axisOrWhatev];
                     var futureDelta = upcomingCoordsValue - inputCoordsRef[axisOrWhatev];
                     if(delta === 0){
@@ -310,7 +309,7 @@ $.fn.actor = function(versitileArg,parentHeight) {
         this.centerWithinX = this.centerWithin.x;
         this.centerWithinY = this.centerWithin.y;
     };
-    Actor.prototype.transform = function(options){
+    Actor.prototype.transform = function(options,dontExtend){
         /*
             options = {
                 pos:{
@@ -325,47 +324,54 @@ $.fn.actor = function(versitileArg,parentHeight) {
                 }
             }
         */
-        $.extend(true,this.transformSettings,options)
-        if(options.pos){
-            if(options.pos.x){
-                $.Velocity.hook(this.el, "translateX", options.pos.x+"px");
+        if(!dontExtend){
+            $.extend(true,this.transformSettings,options)
+        }
+
+        var transformRule = '';
+        // var s = options;
+        var s = this.transformSettings;
+        if(s.pos){
+            var centerOffset = {
+                x:0,
+                y:0
             }
-            if(options.pos.y){
-                $.Velocity.hook(this.el, "translateY", options.pos.y+"px");
+            if(s.pos.applyCenterOffset){
+                centerOffset = {
+                    x: this.centerX,
+                    y: this.centerY
+                }
+            }
+            if(s.pos.x){
+                // $.Velocity.hook(this.el, "translateX", options.pos.x+"px");
+                transformRule += ["translateX(", (s.pos.x-centerOffset.x)+"px) "].join('');
+            }
+            if(s.pos.y){
+                // $.Velocity.hook(this.el, "translateY", options.pos.y+"px");
+                transformRule += ["translateY(", (s.pos.y-centerOffset.y)+"px) "].join('');
             } 
         }
-        if(options.rot){
+        if(s.rot){
             
-            if(options.rot.x){
-                $.Velocity.hook(this.el, "rotateX", options.rot.x+"deg");
+            if(s.rot.x){
+                // $.Velocity.hook(this.el, "rotateX", options.rot.x+"deg");
+                transformRule += ["rotateX(", s.rot.x+"deg) "].join('');
             }
-            if(options.rot.y){
-                $.Velocity.hook(this.el, "rotateY", options.rot.y+"deg");
+            if(s.rot.y){
+                // $.Velocity.hook(this.el, "rotateY", options.rot.y+"deg");
+                transformRule += ["rotateY(", s.rot.y+"deg) "].join('');
             } 
-            if(options.rot.z){
-                $.Velocity.hook(this.el, "rotateZ", options.rot.z+"deg");
+            if(s.rot.z){
+                // $.Velocity.hook(this.el, "rotateZ", options.rot.z+"deg");
+                transformRule += ["rotateZ(", s.rot.z+"deg) "].join('');
             } 
-        }      
+        } 
+        if(transformRule){
+            this.el.css('-webkit-transform',transformRule)
+        } 
     };
 
-    Actor.prototype.pointAt = function(inputCoordsRef,centerCoords){
-        var self = this;
-
-        var offset = this.getOffset();
-        
-
-        this.el.loopCb(function(){
-            centerCoords = centerCoords ? centerCoords : {
-                x:offset.x + self.centerX,
-                y:offset.y + self.centerY,
-            };
-            var deg = myUtils.getDegreesFromTwoPoints(inputCoordsRef,centerCoords);
-            self.transform({
-                rot: {z:deg}
-            })
-        });
     
-    };
 
     Actor.prototype.getTheoreticalTransformSetting = function(path){
         var toReturn = 0;
@@ -377,41 +383,78 @@ $.fn.actor = function(versitileArg,parentHeight) {
         return toReturn;
     };
 
-    Actor.prototype.moveToward = function(inputCoordsRef,centerCoords){
+    Actor.prototype.pointAt = function(inputCoordsRef,centerCoords){
         var self = this;
 
-        var offset = this.getOffset();
+        if(centerCoords){
+            if(centerCoords === true){
+                var offset = this.getOffset();
+                centerCoords = {
+                    x:offset.x + self.centerX,
+                    y:offset.y + self.centerY,
+                };
+            }
+            this.primePosCoords(centerCoords);
+            delete self.transformSettings.pos;
+        } else {
+            centerCoords = self.transformSettings.pos
+        }
+
+
+        var velocitySettings = {};
+
+        this.el.loopCb(function(){
+            velocitySettings.degrees = myUtils.getDegreesFromTwoPoints(inputCoordsRef,centerCoords);
+            self.transform({
+                rot: {z:velocitySettings.degrees}
+            })
+        },true);
+    
+    };
+
+    Actor.prototype.primePosCoords = function(initialCoordDest){
+        //if centerCoords, use those, else if transformSettings, use those, else use zero
+        initialCoordDest = initialCoordDest ? initialCoordDest : {};
+        var x = myUtils.propertyAt(this.transformSettings,'pos.x');
+        var y = myUtils.propertyAt(this.transformSettings,'pos.y');
+        x = x ? x : 0;
+        y = y ? y : 0;
+        x = initialCoordDest.x ? initialCoordDest.x : x;
+        y = initialCoordDest.y ? initialCoordDest.y : y;
+        myUtils.propertyAt(this.transformSettings,'pos.x',x);
+        myUtils.propertyAt(this.transformSettings,'pos.y',y);
+    };
+
+    Actor.prototype.moveToward = function(inputCoordsRef,initialCoordDest){
+        var self = this;
+        this.primePosCoords(initialCoordDest);
+
+        // var offset = this.getOffset();
         
         var velocitySettings = {
             speed:4,
             degrees:-140
         };
 
-        var myVeloctiy = myUtils.setVelocity({
-            speed:1,
-            degrees:10
-        });
+        var myVeloctiy = myUtils.setVelocity(velocitySettings);
         this.el.loopCb(function(){
-            centerCoords = centerCoords ? centerCoords : {
-                x:offset.x + self.centerX + self.getTheoreticalTransformSetting('pos.x'),
-                y:offset.y + self.centerY + self.getTheoreticalTransformSetting('pos.y'),
-            };
 
-
-
-            velocitySettings.degrees = myUtils.getDegreesFromTwoPoints(inputCoordsRef,centerCoords);
+            velocitySettings.degrees = myUtils.getDegreesFromTwoPoints(inputCoordsRef,self.transformSettings.pos);
 
             myVeloctiy.update(velocitySettings);
-            myVeloctiy.tick(centerCoords,inputCoordsRef);
-
-
+            myVeloctiy.tick(self.transformSettings.pos,inputCoordsRef);
+// console.log('zxcv',self.transformSettings.pos.x)
             self.transform({
+                // rot: {z:velocitySettings.degrees},
                 pos:{
-                    x: centerCoords.x,
-                    y: centerCoords.y
+                    x: self.transformSettings.pos.x,
+                    y: self.transformSettings.pos.y,
+                    applyCenterOffset: true
                 }
-            })
+            },true)
         });
+
+        
 
 
           

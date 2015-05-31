@@ -140,6 +140,7 @@
                         var centerX = actorOffset.left + actor.actor('centerX');
                         var centerY = actorOffset.top + actor.actor('centerY');
                         propToParse = 'page';
+                        altCenter = true;
                     }
 
                     var centerCoords = {
@@ -333,7 +334,8 @@
 
         <h2>velocity move towards</h2>
         <div class="moveTowardsParent" style="background:yellow;position:relative;width:200px;height:200px;overflow:hidden;">
-            <div class="moveTowardsBall" style="position:absolute;width:20px;height:20px;background:black;"></div>
+            <!-- <div class="moveTowardsBall" style="position:absolute;width:20px;height:20px;background:black;"></div> -->
+            <div class="moveTowardsBall" style="width:80px;height:20px;background:pink;position:absolute;text-align:right;">-----></div>
         </div>
         <script>
             $(function(){
@@ -370,6 +372,9 @@
                 })
 
                 ball.actor('moveToward',mouseCoords,{x:100,y:0});
+                ball.actor('pointAt',mouseCoords);
+
+                // ball.actor('pointAt',mouseCoords,true);
 
 
               
